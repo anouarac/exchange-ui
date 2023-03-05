@@ -1,4 +1,4 @@
-# ImPlot Demos
+# Exchange UI
 This repository is a fork of [ImPlot Demos](https://github.com/epezent/implot_demos) and it contains an implementation of an exchange user interface.
 
 It is modified to work in UNIX systems.
