@@ -5,7 +5,7 @@
 #include "App.h"
 #include <string.h>
 #include <string.h>
-#include <curl/curl.h>
+#include "curl/curl.h"
 #include <ctime>
 #include <iomanip>
 #include <sstream>
@@ -95,7 +95,8 @@ public:
 
         std::string url = build_url(ticker, start_date, end_date, interval);
         std::string filename = ticker + "_" + start_date + "_" + end_date + ".csv";
-
+        if (fs::exists(filename))
+            fs::remove(filename);
         if (!fs::exists(filename)) {
             fmt::print("Downloading {}\n",filename);
             if (!download_file(url, filename))
@@ -163,10 +164,13 @@ private:
         if (curl)
         {
             fp = fopen(filename.c_str(), "wb");
+            curl_easy_setopt(curl, CURLOPT_SSL_VERIFYSTATUS, 0);
+            curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
             curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
             curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, NULL);
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
             res = curl_easy_perform(curl);
+            // std::cout << curl_easy_strerror(res) << std::endl;
             if (res == 0)
                 success = true;
             curl_easy_cleanup(curl);
@@ -276,9 +280,11 @@ struct ImStocks : App
     char t1_str[32];
     char t2_str[32];
     ImPlotTime t1; 
-    ImPlotTime t2; 
+    ImPlotTime t2;
+    time_t start_time;
 
     void Start() override {
+        time(&start_time);
         t2 = ImPlot::FloorTime(ImPlotTime::FromDouble((double)time(0)),ImPlotTimeUnit_Day);
         t1 = ImPlot::AddTime(t2, ImPlotTimeUnit_Yr, -5);
         ImPlot::FormatDate(t1,t1_str,32,ImPlotDateFmt_DayMoYr,true);
@@ -305,6 +311,16 @@ struct ImStocks : App
         ImGui::SetNextItemWidth(200);
         if (ImGui::InputText("##Ticker",buff,8,ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_CharsUppercase)) {
 
+        }
+
+        time_t end_time;
+        time(&end_time);
+        if (difftime(end_time, start_time) > 3) {
+            auto d = m_api.get_ticker(buff, t1_str, t2_str, Interval_Daily);
+            if (d.ticker != "ERROR")
+                m_ticker_data[d.ticker] = d;
+            ImPlot::GetStyle().FitPadding.y = 0.2f;
+            time(&start_time);
         }
     
         ImGui::SameLine();
