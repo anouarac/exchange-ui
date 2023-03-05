@@ -88,7 +88,7 @@ endif()
 target_link_libraries(imgui PUBLIC glfw glad OpenGL::GL)
 target_compile_definitions(imgui PRIVATE IMGUI_DLL_EXPORT)
 
-include_directories(../imgui/ ../imgui/examples ../imgui/examples/libs/gl3w ../imgui/backends ../imgui/misc/cpp)
+target_include_directories(imgui PUBLIC ../imgui/ ../imgui/examples ../imgui/examples/libs/gl3w ../imgui/backends ../imgui/misc/cpp)
 
 # imnodes
 add_library(imnodes 3rdparty/imnodes/imnodes.h 3rdparty/imnodes/imnodes_internal.h 3rdparty/imnodes/imnodes.cpp)
@@ -117,7 +117,7 @@ else()
   target_compile_options(implot PRIVATE -Wall -Wextra -pedantic -Werror -Ofast)
 endif()
 
-include_directories(../implot/)
+target_include_directories(implot PUBLIC ../implot/)
 
 ###############################################################################
 # APP FRAMEWORK
@@ -139,17 +139,17 @@ add_library(app
         common/Fonts/RobotoMonoBold.cpp
         common/Fonts/RobotoMonoItalic.cpp
         )
-target_include_directories(app PUBLIC common)
-target_link_libraries(app implot nfd)
-target_compile_features(app PRIVATE cxx_std_17)
+target_include_directories(app PUBLIC common "3rdparty" "3rdparty/kissfft")
+target_link_libraries(app implot nfd fmt::fmt)
+target_compile_features(app PUBLIC cxx_std_17)
 
 ###############################################################################
 # DEMO APPS
 ###############################################################################
 
 # stocks demo
-add_executable(stocks "demos/stocks.cpp" )
-target_link_libraries(stocks app fmt::fmt CURL::libcurl)
-target_compile_features(stocks PRIVATE cxx_std_17)
+#add_executable(stocks "demos/stocks.cpp" )
+#target_link_libraries(stocks app fmt::fmt CURL::libcurl)
+#target_compile_features(stocks PRIVATE cxx_std_17)
 
 # trading pairs
